@@ -427,3 +427,95 @@ Lower risk but also lower expected returns.
 **Bottom-Right → Inefficient Assets**  
 Higher risk without sufficient return — generally avoided by investors.
 """)
+    
+# ===============================
+# TAIL RISK ANALYSIS (KURTOSIS)
+# ===============================
+
+st.header("⚠️ Tail Risk & Fat-Tail Analysis")
+
+st.markdown("""
+### What is Kurtosis?
+
+While Volatility tells us how much a stock moves, **Kurtosis** tells us **how extreme those moves are**. 
+
+In finance, high Kurtosis indicates **"Fat Tails"** — meaning the asset has a higher probability of experiencing **extreme, unexpected price spikes or crashes** (Black Swan events).
+
+• **High Kurtosis (> 3)** → "Leptokurtic" — Higher risk of extreme outliers.
+• **Low Kurtosis (< 3)** → "Platykurtic" — More stable, fewer extreme surprises.
+""")
+
+# 1. Calculation
+kurt_values = daily_returns.kurtosis().sort_values(ascending=False)
+
+# 2. Metrics Row
+cols_kurt = st.columns(len(stock_list))
+
+for i, stock in enumerate(kurt_values.index):
+    val = kurt_values[stock]
+    with cols_kurt[i]:
+        # Professional Interpretation logic
+        if val > 10:
+            risk_level = "Extreme Outliers"
+        elif val > 3:
+            risk_level = "High Fat-Tail Risk"
+        else:
+            risk_level = "Normal Distribution"
+            
+        st.metric(
+            label=f"{stock.upper()} Kurtosis",
+            value=f"{val:.2f}",
+            help=f"Distribution shape: {risk_level}"
+        )
+
+# 3. Kurtosis Bar Chart (Centered)
+left_k, mid_k, right_k = st.columns([1,3,1])
+
+with mid_k:
+    plt.style.use('dark_background')
+    fig_kurt, ax_kurt = plt.subplots(figsize=(8,5))
+    fig_kurt.patch.set_facecolor('#0E1117')
+    ax_kurt.set_facecolor('#0E1117')
+
+    # Using a "Rocket" style palette to highlight high-risk assets
+    kurt_colors = sns.color_palette("rocket", len(kurt_values))
+    
+    bars_k = ax_kurt.bar(kurt_values.index, kurt_values.values, color=kurt_colors)
+
+    # Add data labels on top
+    for bar in bars_k:
+        yval = bar.get_height()
+        ax_kurt.text(
+            bar.get_x() + bar.get_width()/2, 
+            yval + 0.1, 
+            f'{yval:.2f}', 
+            ha='center', 
+            fontweight='bold', 
+            color='white'
+        )
+
+    ax_kurt.set_title('Asset Kurtosis Comparison (Tail Risk)', fontsize=14, fontweight='bold', pad=15)
+    ax_kurt.set_ylabel('Kurtosis Value')
+    
+    # Clean up spines
+    ax_kurt.spines['top'].set_visible(False)
+    ax_kurt.spines['right'].set_visible(False)
+    ax_kurt.grid(axis='y', linestyle='--', alpha=0.2)
+
+    st.pyplot(fig_kurt)
+
+# ===============================
+# KURTOSIS INTERPRETATION
+# ===============================
+
+with st.expander("📖 Why does Kurtosis matter for your Portfolio?"):
+
+    st.markdown("""
+Looking at the chart above, you can see which assets are the most "unpredictable":
+
+1. **The 'Jump' Assets (High Kurtosis)** If an asset like **SPY** or **GOLD** shows very high Kurtosis, it means it is prone to massive one-day gains or losses that don't happen often but are huge when they do.
+
+2. **The 'Stable' Assets (Low Kurtosis)** Assets like **TSLA** or **AMZN** usually have lower Kurtosis, meaning their returns follow a more "Normal" bell curve with fewer extreme shocks.
+
+**Investor Tip:** High Kurtosis isn't always bad (it could mean a massive jump UP), but it represents **Uncertainty**. Diversifying with low-kurtosis assets helps "smooth out" your portfolio's performance.
+""")
