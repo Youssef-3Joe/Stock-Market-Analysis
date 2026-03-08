@@ -1,3 +1,17 @@
+import yfinance as yf# it connects to yahoo finance to pull stock data
+import mplfinance as mpf # for financial charts like candlestick
+import numpy as np # The Math Engine
+import pandas as pd # handles the data in a table format (DataFrame)
+import statsmodels.api as sm # for the Statistics part like regression analysis
+import scipy.stats as stats # for statistical analysis and probability
+from matplotlib import pyplot as plt # Matplotlib is the base
+import seaborn as sns # Seaborn makes the charts look modern and clean.
+from plotly import express as px # creates Interactive charts.
+import datetime as dt # to manage time ranges (e.g., "the last 5 years")
+import os # save the results to folders on your computer.
+from sqlalchemy import create_engine # to connect to MySQL
+import urllib.parse  # Standard library to fix the password symbols
+
 # Create a dictionary to map Yahoo Tickers (keys) to our specific CSV filenames (values)
 ticker_map = {'AAPL': 'AAPL', 'TSLA': 'TSLA', 'MSFT': 'MSFT', 'GC=F': 'GOLD', 'SPY': 'SPY', 'AMZN': 'AMZN'}
 
@@ -74,4 +88,5 @@ for ticker, filename in ticker_map.items():
         df['Ticker'] = ticker
         
         # Create the new CSV file and save all the data into it
+
         df.to_csv(file_path, index=False)
