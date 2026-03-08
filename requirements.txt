@@ -6,3 +6,9 @@ yfinance
 matplotlib
 scipy
 seaborn
+mplfinance
+statsmodels
+datetime
+os
+sqlalchemy
+urllib
