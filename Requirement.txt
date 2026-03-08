@@ -1,0 +1,13 @@
+yfinance 
+mplfinance 
+numpy
+pandas
+statsmodels
+scipy
+matplotlib
+seaborn
+plotly
+datetime
+os
+sqlalchemy
+urllib.parse 
