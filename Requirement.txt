@@ -1,13 +1,6 @@
-yfinance 
-mplfinance 
-numpy
+streamlit
 pandas
-statsmodels
-scipy
-matplotlib
-seaborn
+numpy
 plotly
-datetime
-os
-sqlalchemy
-urllib.parse 
+yfinance
+matplotlib
