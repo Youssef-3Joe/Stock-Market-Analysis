@@ -20,7 +20,7 @@ jobs:
           pip install pandas yfinance sqlalchemy pymysql cryptography
 
       - name: Run ETL Script
-        run: python etl.py
+        run: python ETL.py
         env:
           # We skip SQL on GitHub for now so it doesn't error out
           SKIP_SQL: "true" 
