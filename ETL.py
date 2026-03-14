@@ -100,6 +100,8 @@ def create_master_files(cols=['Date', 'Adj Close']):
     if main_df is not None:
         # Clean and format
         df_final = main_df.dropna(how='all').sort_index()
+        # This fills the "blanks" with the last known price
+        df_final = df_final.ffill()
         df_final.index.names = ['Date']
         df_final.columns = [col.lower() for col in df_final.columns]
         
