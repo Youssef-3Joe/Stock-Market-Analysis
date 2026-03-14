@@ -3,22 +3,11 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 import os
-from sqlalchemy import create_engine
 
 # ==========================================
-# 1. SETUP & DATABASE CONNECTION
+# 1. SETUP
 # ==========================================
-# Replace with your actual MySQL credentials
-# Format: mysql+pymysql://user:password@host:port/database
-# For GitHub Actions, you can use environment variables for safety
-DB_USER = "root"
-DB_PASS = "yourpassword"
-DB_HOST = "localhost"
-DB_NAME = "stock_db"
-
-engine = create_engine(f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}")
-
-# Ticker mapping
+# Ticker mapping: Yahoo Ticker -> Filename
 ticker_map = {'AAPL': 'AAPL', 'TSLA': 'TSLA', 'MSFT': 'MSFT', 'GC=F': 'GOLD', 'SPY': 'SPY', 'AMZN': 'AMZN'}
 
 # Current date string
@@ -47,7 +36,7 @@ for ticker, filename in ticker_map.items():
         
         if new_data is not None and not new_data.empty:
             try:
-                # Cleaning yfinance multi-index columns
+                # Cleaning yfinance multi-index columns if they exist
                 if isinstance(new_data.columns, pd.MultiIndex):
                     new_data.columns = new_data.columns.get_level_values(0)
                 
@@ -57,12 +46,12 @@ for ticker, filename in ticker_map.items():
                 # Merge and clean duplicates
                 updated_df = pd.concat([existing_df, new_data]).drop_duplicates(subset=['Date'])
                 updated_df.to_csv(file_path, index=False)
-                print(f"✔️ {filename}.csv updated successfully.")
+                print(f"✔️ {filename}.csv updated.")
             except Exception as e:
                 print(f"⚠️ Error processing {ticker}: {e}")
                 
     else:
-        # Initial download if file doesn't exist
+        # Initial download if file doesn't exist (First time setup)
         print(f"📥 Initial download for {ticker} -> {filename}.csv")
         df = yf.download(ticker, start="2020-01-01", auto_adjust=False)
         
@@ -78,11 +67,11 @@ for ticker, filename in ticker_map.items():
 # ==========================================
 def create_master_files(cols=['Date', 'Adj Close']):
     """
-    Part A: Stacks all columns for all stocks into a 'Long' table.
-    Part B: Pivots 'Adj Close' for the Dashboard.
+    Part A: Stacks all stocks into 'all_stocks_raw.csv' (Long format).
+    Part B: Pivots data into 'portfolio_prices.csv' (Wide format for Dashboard).
     """
     
-    # --- PART A: RAW DATA STACKING (LONG FORMAT) ---
+    # --- PART A: RAW DATA STACKING ---
     all_data_list = []
     for filename in ticker_map.values():
         file_path = f"{filename}.csv"
@@ -92,15 +81,9 @@ def create_master_files(cols=['Date', 'Adj Close']):
     if all_data_list:
         raw_master_df = pd.concat(all_data_list, ignore_index=True)
         raw_master_df.to_csv('all_stocks_raw.csv', index=False)
-        
-        # SQL Upload
-        try:
-            raw_master_df.to_sql(name='all_stocks_raw', con=engine, if_exists='replace', index=False)
-            print("📦 'all_stocks_raw' saved to CSV and SQL.")
-        except Exception as e:
-            print(f"❌ SQL Part A Error: {e}")
+        print("📦 'all_stocks_raw.csv' created.")
 
-    # --- PART B: PRICE PIVOTING (WIDE FORMAT) ---
+    # --- PART B: PRICE PIVOTING ---
     main_df = None
     for filename in ticker_map.values():
         file_path = f'{filename}.csv'
@@ -115,26 +98,20 @@ def create_master_files(cols=['Date', 'Adj Close']):
                 main_df = main_df.join(df_temp, how='outer')
 
     if main_df is not None:
+        # Clean and format
         df_final = main_df.dropna(how='all').sort_index()
         df_final.index.names = ['Date']
         df_final.columns = [col.lower() for col in df_final.columns]
         
-        # Save Dashboard CSV
+        # Save the final Dashboard file
         df_final.to_csv('portfolio_prices.csv')
-        
-        # SQL Upload
-        try:
-            df_final.to_sql(name='portfolio_prices', con=engine, if_exists='replace', index=True)
-            print("🏠 'portfolio_prices' saved to CSV and SQL.")
-        except Exception as e:
-            print(f"❌ SQL Part B Error: {e}")
-            
+        print("🏠 'portfolio_prices.csv' updated for the Dashboard.")
         return df_final
 
 # ==========================================
 # 4. EXECUTION
 # ==========================================
 if __name__ == "__main__":
-    print("🏁 Starting ETL Process...")
+    print("🏁 Starting CSV-only ETL Process...")
     create_master_files()
     print("🚀 ETL Pipeline Finished successfully.")
