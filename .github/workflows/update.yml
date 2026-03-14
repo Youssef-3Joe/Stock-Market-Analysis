@@ -1,7 +1,7 @@
 name: Automated Stock ETL Update
 
 on:
-  workflow_dispatch: # Keeps the manual "Run" button
+  workflow_dispatch: # Allows you to run it manually whenever you want
   schedule:
     # 9:00 PM UTC is 11:00 PM Cairo Time
     - cron: '0 21 * * *' 
@@ -31,3 +31,7 @@ jobs:
           git add *.csv
           git commit -m "Scheduled Data Update: $(date)" || echo "No changes"
           git push
+
+      - name: Keep Streamlit Awake
+        # Replace the URL below with your actual Streamlit app link
+        run: curl -I https://multi-asset-portfolio-dashboard.streamlit.app/
