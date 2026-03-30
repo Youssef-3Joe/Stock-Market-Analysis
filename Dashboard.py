@@ -48,7 +48,7 @@ stock_list = [col for col in portfolio_prices.columns if col != 'Date']
 # 4. SIDEBAR
 # ===============================
 with st.sidebar:
-    st.info("Data auto-updates daily at 12 AM Cairo via GitHub Actions.")
+    st.info("Data auto-updates daily at 11:00 PM Cairo Time.")
 
 # ===============================
 # 5. MAIN HEADER & LOGIC
